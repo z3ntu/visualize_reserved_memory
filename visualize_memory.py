@@ -33,15 +33,36 @@ def main():
 
     memory: int = fdt.path_offset('/reserved-memory')
 
+    address_cells = fdt.getprop(memory, "#address-cells").as_uint32()
+    size_cells = fdt.getprop(memory, "#size-cells").as_uint32()
+    if address_cells == 1 and size_cells == 1:
+        reg_prop_cells = 1
+    elif address_cells == 2 and size_cells == 2:
+        reg_prop_cells = 2
+    else:
+        print(f"ERROR: Unexpected combination of #address-cells ({address_cells}) and #size-cells ({size_cells})")
+        sys.exit(1)
+
+    print(f"INFO: Detected #address-cells = <{address_cells}> and #size-cells = <{size_cells}>")
+
     i = 1
     for memory_subnode in fdt.subnodes(memory):
         name = fdt.get_name(memory_subnode)
         name_clean = name.split("@")[0]
         phandle = fdt.get_phandle(memory_subnode)
         path = fdt.get_path(memory_subnode)
+
         reg_prop = fdt.getprop(memory_subnode, "reg").as_uint32_list()
-        reg_addr = reg_prop[0]
-        reg_size = reg_prop[1]
+        match reg_prop_cells:
+            case 1:
+                reg_addr = reg_prop[0]
+                reg_size = reg_prop[1]
+            case 2:
+                reg_addr = reg_prop[0] << 8 | reg_prop[1]
+                reg_size = reg_prop[2] << 8 | reg_prop[3]
+            case _:
+                raise RuntimeError(f"Invalid reg_prop_cells value {reg_prop_cells}")
+
         reg_end = reg_addr + reg_size
 
         print(f"name={name}, phandle={phandle}, path={path}, reg={hex(reg_addr)}+{hex(reg_size)}={hex(reg_end)}")
