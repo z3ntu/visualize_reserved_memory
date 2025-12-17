@@ -6,6 +6,7 @@
 # Script to show a visual representation of reserved-memory nodes in devicetree.
 #
 
+from collections.abc import Iterator
 import sys
 import matplotlib.pyplot as plt
 
@@ -13,7 +14,7 @@ import libfdt
 from libfdt import FDT_ERR_NOTFOUND
 
 
-def fdt_subnodes(self, parent):
+def fdt_subnodes(self: libfdt.FdtRo, parent: int) -> Iterator[int]:
     offset = self.first_subnode(parent, [FDT_ERR_NOTFOUND])
     while offset != -FDT_ERR_NOTFOUND:
         yield offset
@@ -23,7 +24,7 @@ def fdt_subnodes(self, parent):
 libfdt.FdtRo.subnodes = fdt_subnodes
 
 
-def main():
+def main() -> None:
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} <dtb_file>")
         sys.exit(1)
