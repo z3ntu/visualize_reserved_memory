@@ -39,15 +39,17 @@ def main():
         name_clean = name.split("@")[0]
         phandle = fdt.get_phandle(memory_subnode)
         path = fdt.get_path(memory_subnode)
-        reg = fdt.getprop(memory_subnode, "reg").as_uint32_list()
-        reg_end = reg[0] + reg[1]
+        reg_prop = fdt.getprop(memory_subnode, "reg").as_uint32_list()
+        reg_addr = reg_prop[0]
+        reg_size = reg_prop[1]
+        reg_end = reg_addr + reg_size
 
-        print(f"name={name}, phandle={phandle}, path={path}, reg={hex(reg[0])}+{hex(reg[1])}={hex(reg_end)}")
-        plt.plot([reg[0], reg_end], [i, i], linewidth = '10')
-        plt.annotate(hex(reg[0]), (reg[0], i), textcoords="offset points", xytext=(0,10), ha='center')
+        print(f"name={name}, phandle={phandle}, path={path}, reg={hex(reg_addr)}+{hex(reg_size)}={hex(reg_end)}")
+        plt.plot([reg_addr, reg_end], [i, i], linewidth = '10')
+        plt.annotate(hex(reg_addr), (reg_addr, i), textcoords="offset points", xytext=(0,10), ha='center')
         plt.annotate(hex(reg_end), (reg_end, i), textcoords="offset points", xytext=(0,-10), ha='center')
 
-        plt.annotate(name_clean, (reg[0] + (reg[1]/2), i), textcoords="offset points", xytext=(0,0), ha='center')
+        plt.annotate(name_clean, (reg_addr + (reg_size/2), i), textcoords="offset points", xytext=(0,0), ha='center')
         i += 1
 
     plt.grid(axis = 'x')
